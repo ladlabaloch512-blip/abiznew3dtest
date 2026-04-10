@@ -4,8 +4,7 @@ import requests
 import re
 import json
 import urllib.parse
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import undetected_chromedriver as uc
 class MarketplaceLister:
     CATEGORY_MAP = {
         "Tools": "1670493229902393",
@@ -38,15 +37,14 @@ class MarketplaceLister:
         # Removed DB and BatchWorker dependencies to make it standalone
         pass
     def setup_driver(self, profile_dir):
-        """Sets up a standalone Selenium Chrome driver"""
-        options = Options()
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option("useAutomationExtension", False)
+        """Sets up a standalone Selenium Chrome driver using undetected_chromedriver"""
+        options = uc.ChromeOptions()
 
+        # uc naturally handles automation flags, but we can still set profile path
         if profile_dir:
-            options.add_argument(f"user-data-dir={profile_dir}")
+            options.add_argument(f"--user-data-dir={profile_dir}")
 
-        driver = webdriver.Chrome(options=options)
+        driver = uc.Chrome(options=options)
         return driver
     def create_listing(self, profile_dir, template_data, action="draft"):
         """Creates listing using Hybrid API approach. Action can be 'draft' or 'publish'."""
