@@ -37,32 +37,33 @@ class MarketplaceLister:
     def __init__(self):
         # Removed DB and BatchWorker dependencies to make it standalone
         pass
-    def setup_driver(self, profile_name):
+    def setup_driver(self, profile_dir):
         """Sets up a standalone Selenium Chrome driver"""
         options = Options()
-        # Disable automation flags to avoid basic bot detection
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option('useAutomationExtension', False)
-        # Uncomment the next line to persist login session across runs for the profile
-        # options.add_argument(f"user-data-dir=./selenium_profiles/{profile_name}")
+        options.add_experimental_option("useAutomationExtension", False)
+
+        if profile_dir:
+            options.add_argument(f"user-data-dir={profile_dir}")
+
         driver = webdriver.Chrome(options=options)
         return driver
-    def create_listing(self, profile_name, template_data, action="draft"):
+    def create_listing(self, profile_dir, template_data, action="draft"):
         """Creates listing using Hybrid API approach. Action can be 'draft' or 'publish'."""
-        print(f"🛒 [{profile_name}] Starting API listing process... (Action: {action.upper()})")
+        print(f"🛒 [{profile_dir}] Starting API listing process... (Action: {action.upper()})")
         driver = None
         try:
             # 1. Boot up the browser
-            driver = self.setup_driver(profile_name)
+            driver = self.setup_driver(profile_dir)
             # 2. Go directly to the Marketplace creation page
-            print(f"🌐 [{profile_name}] Opening Marketplace creation page. Ensure you are logged in!")
+            print(f"🌐 [{profile_dir}] Opening Marketplace creation page. Ensure you are logged in!")
             driver.get("https://www.facebook.com/marketplace/create/item")
             time.sleep(10) # Wait for manual login (if needed) and DOM/cookies to load
             # 3. Extract active session data
-            print(f"🕵️ [{profile_name}] Extracting Security Tokens & Routing Data...")
+            print(f"🕵️ [{profile_dir}] Extracting Security Tokens & Routing Data...")
             cookies, fb_dtsg, jazoest, lsd, profile_id, fb_env = self._get_session_data(driver)
             if not fb_dtsg or not profile_id:
-                print(f"❌ [{profile_name}] Failed to extract security tokens. Is account logged in?")
+                print(f"❌ [{profile_dir}] Failed to extract security tokens. Is account logged in?")
                 return False
             session = requests.Session()
             session.cookies.update(cookies)
@@ -93,22 +94,22 @@ class MarketplaceLister:
                 res_json = self.draft_listing(driver, template_data, photo_ids, fb_dtsg, jazoest, lsd, profile_id)
             # Check the JSON directly
             if "errors" in res_json:
-                print(f"❌ [{profile_name}] GraphQL Rejected the Request! FB says:")
+                print(f"❌ [{profile_dir}] GraphQL Rejected the Request! FB says:")
                 print(json.dumps(res_json["errors"], indent=2))
                 return False
             elif "data" in res_json:
-                print(f"✅ [{profile_name}] Automation finished! Action '{action}' successful.")
+                print(f"✅ [{profile_dir}] Automation finished! Action '{action}' successful.")
                 return True
             else:
-                print(f"⚠️ [{profile_name}] Unknown response format.")
+                print(f"⚠️ [{profile_dir}] Unknown response format.")
                 print(res_json)
                 return False
         except Exception as e:
-            print(f"⚠️ [{profile_name}] Error during API listing: {e}")
+            print(f"⚠️ [{profile_dir}] Error during API listing: {e}")
             return False
         finally:
             if driver:
-                print(f"🛑 [{profile_name}] Closing browser in 5 seconds...")
+                print(f"🛑 [{profile_dir}] Closing browser in 5 seconds...")
                 time.sleep(5)
                 driver.quit()
     def _get_session_data(self, driver):
