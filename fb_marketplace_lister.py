@@ -55,7 +55,7 @@ class MarketplaceLister:
             driver = self.setup_driver(profile_dir)
             # 2. Go directly to the Marketplace creation page
             print(f"🌐 [{profile_dir}] Opening Marketplace creation page. Ensure you are logged in!")
-            driver.get("https://www.facebook.com/marketplace/create/item")
+            driver.get("https://web.facebook.com/marketplace/create/item")
             time.sleep(10) # Wait for manual login (if needed) and DOM/cookies to load
             # 3. Extract active session data
             print(f"🕵️ [{profile_dir}] Extracting Security Tokens & Routing Data...")
@@ -69,8 +69,8 @@ class MarketplaceLister:
             user_agent = driver.execute_script("return navigator.userAgent;")
             session.headers.update({
                 "User-Agent": user_agent,
-                "Referer": "https://www.facebook.com/marketplace/create/item",
-                "Origin": "https://www.facebook.com",
+                "Referer": "https://web.facebook.com/marketplace/create/item",
+                "Origin": "https://web.facebook.com",
                 "Sec-Fetch-Site": "same-origin",
                 "X-FB-LSD": lsd,
                 "X-ASBD-ID": "359341"
@@ -282,7 +282,7 @@ class MarketplaceLister:
         if(sd.__spin_r) body_str += '&__spin_r=' + sd.__spin_r;
         if(sd.__spin_b) body_str += '&__spin_b=' + sd.__spin_b;
         if(sd.__spin_t) body_str += '&__spin_t=' + sd.__spin_t;
-        fetch("https://www.facebook.com/api/graphql/", {
+        fetch("https://web.facebook.com/api/graphql/", {
             method: "POST",
             credentials: "same-origin",
             headers: {
