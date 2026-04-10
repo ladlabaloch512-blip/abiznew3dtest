@@ -293,8 +293,11 @@ class MarketplaceLister:
             },
             body: body_str
         })
-        .then(response => response.json())
-        .then(data => done(data))
+        .then(response => response.text())
+        .then(text => {
+            const cleanText = text.replace('for (;;);', '').trim();
+            done(JSON.parse(cleanText));
+        })
         .catch(error => done({"errors": [{"message": "JS Fetch failed: " + error}]}));
         """
         response_json = driver.execute_async_script(js_code, encoded_data, lsd)
